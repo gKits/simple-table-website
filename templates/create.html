@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>{% block title %} Add a New Post {% endblock %}</h1>
     <form method="post">
         <label for="name">Name</label>
         <br>
@@ -20,6 +19,6 @@
         <input type="text" name="age"
                placeholder="Enter name"
                value="{{ request.form['age'] }}"></input>
-        <button type="submit">Submit</button>
+        <button type="submit" name="submit">Submit</button>
     </form>
 {% endblock %}
