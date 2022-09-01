@@ -6,3 +6,7 @@ CREATE TABLE person (
     Firstname TEXT NOT NULL,
     Age INTEGER NOT NULL
 );
+
+INSERT INTO person (name, firstname, age) 
+VALUES (?, ?, ?)
+    ('Mustermann', 'Max', 99)
