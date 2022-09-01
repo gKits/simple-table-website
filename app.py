@@ -1,8 +1,10 @@
 import sqlite3
-from flask import Flask, render_template, request, redirect, flash
+from flask import Flask, render_template, request, redirect
 
 
 app = Flask(__name__)
+INSERT = 'INSERT INTO person (name, firstname, age) VALUES (?, ?, ?)'
+DELETE = 'DELETE FROM person WHERE Id={}'
 
 
 def get_db_connection():
@@ -13,48 +15,48 @@ def get_db_connection():
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    conn = get_db_connection()
-    data = conn.execute('SELECT * FROM person')
-    conn.close
-    return render_template('index.html', title='Table', data=data)
+    if request.method == 'GET':
+        conn = get_db_connection()
+        data = conn.execute('SELECT * FROM person')
+        headings = [header[0] for header in data.description]
+        conn.close
+
+        return render_template(
+            'index.html',
+            title='Table',
+            headings=headings,
+            data=data
+        )
+    elif request.method == 'POST':
+        print(request.form['submit'])
+        id = request.form['submit']
+        conn = get_db_connection()
+        conn.execute(DELETE.format(id))
+        conn.commit()
+        conn.close()
+
+        return redirect('/')
 
 
 @app.route('/create/', methods=['GET', 'POST'])
 def create():
-    if request.method == 'POST':
-        name = request.form['name']
-        firstname = request.form['firstname']
-        age = request.form['age']
+    if request.method == 'GET':
+        return render_template('create.html')
+    elif request.method == 'POST':
+        if request.form['submit'] == 'add_person':
+            try:
+                name = request.form['name']
+                firstname = request.form['firstname']
+                age = request.form['age']
+                conn = get_db_connection()
+                conn.execute(INSERT, (name, firstname, int(age)))
+                conn.commit()
+                conn.close()
 
-        if not name or not firstname or not age:
-            flash('All Attributes are required')
-        else:
-            conn = get_db_connection()
-            conn.execute(
-                'INSERT INTO person (name, firstname, age) VALUES (?, ?, ?)',
-                (name, firstname, int(age))
-            )
-            conn.commit()
-            conn.close()
-
-    return render_template('create.html')
-
-
-@app.route('/', methods=['PUT'])
-def create_record(name: str, firstname: str, age: int):
-    pass
-
-
-@app.route('/<index>', methods=['DELETE'])
-def delete_record(index: int):
-    pass
-
-
-@app.route('/', methods=['POST'])
-def update_record():
-    if request.form.get('add_button'):
-        pass
-    return redirect(index())
+                return redirect('/')
+            except Exception:
+                pass
+        redirect('/create/')
 
 
 if __name__ == '__main__':
