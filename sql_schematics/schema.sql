@@ -7,6 +7,4 @@ CREATE TABLE person (
     Age INTEGER NOT NULL
 );
 
-INSERT INTO person (name, firstname, age) 
-VALUES (?, ?, ?)
-    ('Mustermann', 'Max', 99)
+INSERT INTO person ('Mustermann', 'Max', 99)
