@@ -1,24 +1,24 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% block content %}
-    <form method="post">
-        <label for="name">Name</label>
-        <br>
-        <input type="text" name="name"
-               placeholder="Enter name"
-               value="{{ request.form['name'] }}"></input>
-        <br>
-        <label for="firstname">Firstame</label>
-        <br>
-        <input type="text" name="firstname"
-               placeholder="Enter name"
-               value="{{ request.form['firstname'] }}"></input>
-        <br>
-        <label for="age">Age</label>
-        <br>
-        <input type="text" name="age"
-               placeholder="Enter name"
-               value="{{ request.form['age'] }}"></input>
-        <button type="submit" name="submit">Submit</button>
+    <form method="POST">
+       <label for="name">Name</label>
+       <br>
+       <input type="text" name="name"
+              placeholder="Enter name"></input>
+       <br>
+       <label for="firstname">Firstame</label>
+       <br>
+       <input type="text" name="firstname"
+              placeholder="Enter firstname"></input>
+       <br>
+       <label for="age">Age</label>
+       <br>
+       <input type="text" name="age"
+              placeholder="Enter age"></input>
+       <br>
+       <button type="submit" name="submit"
+               value="add_person">Add Person</button>
     </form>
+
 {% endblock %}
