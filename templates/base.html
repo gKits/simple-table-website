@@ -18,18 +18,12 @@
         }
     </style>
   </head>
-  <body>
     <div class="container">
       <h1>{{ title }}</h1>
       <hr>
-    <form method="post" action="/">
-        <input type="submit" name="add_button" value="Add Person"/>
-        <input name="name"/>
-        <input name="firstname"/>
-        <input name="age"/>
-    </form>
       {% block content %}{% endblock %}
     </div>
     {% block scripts %}{% endblock %}
+   </form>
   </body>
 </html>
