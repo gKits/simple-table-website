@@ -1,27 +1,28 @@
 {% extends "base.html" %}
 
 {% block content %}
+  <a class="btn-blue" href="/create/"><i class="fa fa-plus"></i> Add Person </a>
+  <br>
+  </br>
   <table id="data" class="table table-striped">
     <thead>
       <tr>
+        <th>{{"Actions"}}</th>
         {% for header in headings %}
         <th>{{ header }}</th>
         {% endfor %}
-        <th>{{""}}</th>
       </tr>
     </thead>
     <tbody>
       {% for row in data %}
       <tr>
+        <td><form method="POST">
+          <button type="submit" name="delete" class="btn-red" value={{row.Id}}><i class="fa fa-trash"></i>
+          </button>
+        </form></td>
         {% for cell in row %}
         <td>{{ cell }}</td>
         {% endfor %}
-        <td>
-          <form method="POST">
-            <button type="submit" name="submit" class="btn" value={{row.Id}}><i class="fa fa-trash"></i>
-            </button>
-          </form>
-        </td>
       </tr>
       {% endfor %}
     </tbody>
