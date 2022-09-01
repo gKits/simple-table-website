@@ -3,8 +3,8 @@ from flask import Flask, render_template, request, redirect
 
 
 app = Flask(__name__)
-INSERT = 'INSERT INTO person (name, firstname, age) VALUES (?, ?, ?)'
-DELETE = 'DELETE FROM person WHERE Id={}'
+INSERT = 'INSERT INTO person (Name, Firstname, Age) VALUES (?, ?, ?)'
+DELETE = 'DELETE FROM person WHERE Id=?'
 
 
 def get_db_connection():
@@ -30,7 +30,7 @@ def index():
     elif request.method == 'POST':
         id = request.form['delete']
         conn = get_db_connection()
-        conn.execute(DELETE.format(id))
+        conn.execute(DELETE, id)
         conn.commit()
         conn.close()
 
