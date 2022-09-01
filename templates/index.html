@@ -4,22 +4,25 @@
   <table id="data" class="table table-striped">
     <thead>
       <tr>
-        <th>Id</th>
-        <th>Name</th>
-        <th>Firstname</th>
-        <th>Age</th>
-        <th></th>
+        {% for header in headings %}
+        <th>{{ header }}</th>
+        {% endfor %}
+        <th>{{""}}</th>
       </tr>
     </thead>
     <tbody>
-      {% for person in data %}
-        <tr>
-          <td>{{ person.id}}</td>
-          <td>{{ person.name }}</td>
-          <td>{{ person.firstname }}</td>
-          <td>{{ person.age }}</td>
-          <td><button class="btn"><i class="fa fa-trash"></i></button></td>
-        </tr>
+      {% for row in data %}
+      <tr>
+        {% for cell in row %}
+        <td>{{ cell }}</td>
+        {% endfor %}
+        <td>
+          <form method="POST">
+            <button type="submit" name="submit" class="btn" value={{row.Id}}><i class="fa fa-trash"></i>
+            </button>
+          </form>
+        </td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
