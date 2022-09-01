@@ -28,8 +28,7 @@ def index():
             data=data
         )
     elif request.method == 'POST':
-        print(request.form['submit'])
-        id = request.form['submit']
+        id = request.form['delete']
         conn = get_db_connection()
         conn.execute(DELETE.format(id))
         conn.commit()
