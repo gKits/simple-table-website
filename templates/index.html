@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <a class="btn-blue" href="/create/"><i class="fa fa-plus"></i> Add Person </a>
+  <a class="btn btn-primary" href="/create/"><i class="fa fa-plus"></i> Add Person </a>
   <br>
   </br>
   <table id="data" class="table table-striped">
@@ -17,7 +17,7 @@
       {% for row in data %}
       <tr>
         <td><form method="POST">
-          <button type="submit" name="delete" class="btn-red" value={{row.Id}}><i class="fa fa-trash"></i>
+          <button type="submit" name="delete" class="btn btn-danger" value={{row.Id}}><i class="fa fa-trash"></i>
           </button>
         </form></td>
         {% for cell in row %}
