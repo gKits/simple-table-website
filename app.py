@@ -23,9 +23,9 @@ def index():
 
         return render_template(
             'index.html',
-            title='Table',
             headings=headings,
-            data=data
+            data=data,
+            title='Table'
         )
     elif request.method == 'POST':
         id = request.form['delete']
@@ -40,7 +40,11 @@ def index():
 @app.route('/create/', methods=['GET', 'POST'])
 def create():
     if request.method == 'GET':
-        return render_template('create.html')
+        return render_template(
+            'create.html',
+            inputs=['Hello', 'World'],
+            title='Table'
+        )
     elif request.method == 'POST':
         if request.form['submit'] == 'add_person':
             try:
@@ -53,9 +57,8 @@ def create():
                 conn.close()
 
                 return redirect('/')
-            except Exception:
-                pass
-        redirect('/create/')
+            except (TypeError, KeyError, sqlite3.DatabaseError):
+                return redirect('/create/')
 
 
 if __name__ == '__main__':
