@@ -1,24 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <form method="POST">
-       <label for="name">Name</label>
-       <br>
-       <input type="text" name="name"
-              placeholder="Enter name"></input>
-       <br>
-       <label for="firstname">Firstame</label>
-       <br>
-       <input type="text" name="firstname"
-              placeholder="Enter firstname"></input>
-       <br>
-       <label for="age">Age</label>
-       <br>
-       <input type="text" name="age"
-              placeholder="Enter age"></input>
-       <br>
+<form method = "POST">
+{% for inp in inputs %}
+     <br>
+       <input type="text" name="input"
+              placeholder={{inp}}></input>
+{% endfor %}
+     <br>
        <button type="submit" name="submit"
-               value="add_person">Add Person</button>
-    </form>
+              value="add_person">Add Person</button>
+     <br>
 
 {% endblock %}
