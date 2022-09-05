@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <a class="btn btn-primary" href="/create/"><i class="fa fa-plus"></i></a>
+  <a class="btn btn-primary" href="/create/">Create new entry <i class="fa fa-plus"></i></a>
+  <a class="btn btn-primary" href="/dlcsv/">Download .csv-File <i class="fa fa-download"></i></a>
   <br>
   </br>
   <table id="data" class="table table-striped">
@@ -19,8 +20,8 @@
         <td><form method="POST">
           <button type="submit" name="delete" class="btn btn-danger" value={{row.Id}}><i class="fa fa-trash-o"></i>
           </button>
-          <button type="submit" name="edit" class="btn btn-default" value={{row.Id}}><i class="fa fa-pencil" aria-hidden="true"></i>
-          </button>
+          <a class="btn btn-primary" href=/edit?{{row.Id}}><i class="fa fa-pencil"></i>
+          </a>
         </form></td>
         {% for cell in row %}
         <td>{{ cell }}</td>
