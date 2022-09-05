@@ -1,5 +1,6 @@
 import sqlite3
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, send_file
+from csv import writer
 
 
 app = Flask(__name__)
@@ -11,6 +12,16 @@ def get_db_connection():
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def db_to_csv():
+    conn = get_db_connection()
+    data = conn.execute('SELECT * FROM person')
+    with open('./csv/output.csv', 'w', newline='') as f:
+        wr = writer(f, dialect='excel')
+        wr.writerow([header[0] for header in data.description])
+        wr.writerows(data)
+    conn.close()
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -59,6 +70,12 @@ def create():
                 return redirect('/')
             except (TypeError, KeyError, sqlite3.DatabaseError):
                 return redirect('/create/')
+
+
+@app.route('/dlcsv/', methods=['GET'])
+def get_csv():
+    db_to_csv()
+    return send_file('./csv/output.csv')
 
 
 if __name__ == '__main__':
