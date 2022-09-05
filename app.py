@@ -14,7 +14,7 @@ def get_db_connection():
     return conn
 
 
-def db_to_csv():
+def update_csv():
     conn = get_db_connection()
     data = conn.execute('SELECT * FROM person')
     with open('./csv/output.csv', 'w', newline='') as f:
@@ -44,6 +44,7 @@ def index():
         conn.execute(DELETE, id)
         conn.commit()
         conn.close()
+        update_csv()
 
         return redirect('/')
 
@@ -66,6 +67,7 @@ def create():
                 conn.execute(INSERT, (name, firstname, int(age)))
                 conn.commit()
                 conn.close()
+                update_csv()
 
                 return redirect('/')
             except (TypeError, KeyError, sqlite3.DatabaseError):
@@ -74,7 +76,6 @@ def create():
 
 @app.route('/dlcsv/', methods=['GET'])
 def get_csv():
-    db_to_csv()
     return send_file('./csv/output.csv')
 
 
