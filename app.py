@@ -52,9 +52,12 @@ def index():
 @app.route('/create/', methods=['GET', 'POST'])
 def create():
     if request.method == 'GET':
+        conn = get_db_connection()
+        data = conn.execute('SELECT * FROM person')
+        headers = [header[0] for header in data.description]
         return render_template(
             'create.html',
-            inputs=['Hello', 'World'],
+            inputs=headers,
             title='Table'
         )
     elif request.method == 'POST':
