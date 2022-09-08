@@ -4,7 +4,7 @@
 <form method = "POST">
 {% for inp in inputs %}
      <br>
-       <input type="text" name="input"
+       <input type="text" name={{inp}}
               placeholder={{inp}}></input>
 {% endfor %}
      <br>
