@@ -8,30 +8,26 @@ def get_connection(database: str):
     return conn
 
 
-def exec(app, database: str, query: str, **parameters):
+def exec(database: str, query: str, **parameters):
     try:
         with get_connection(database) as conn:
             result = conn.execute(query, parameters).fetchall()
-        app.logger.info(f'"{query}" was executed')
         return result
     except sqlite3.DatabaseError as e:
-        app.logger.error(e)
         raise e
 
 
-def exec_script(app, database: str, path_to_script: str):
+def exec_script(database: str, path_to_script: str):
     try:
         with get_connection(database) as conn:
             with open(path_to_script, 'r') as f:
                 result = conn.executescript(f.read()).fetchall()
-        app.logger.info(f'Script at "{path_to_script}" excecuted')
         return result
     except (FileNotFoundError, sqlite3.DatabaseError) as e:
-        app.logger.error(e)
         raise e
 
 
-def insert_into_table(app, database: str, table: str, to_insert):
+def insert_into_table(database: str, table: str, to_insert):
     try:
         with get_connection(database) as conn:
             k_string = ', '.join(to_insert.keys())
@@ -40,25 +36,19 @@ def insert_into_table(app, database: str, table: str, to_insert):
                 f'INSERT INTO {table} ({k_string}) VALUES({v_string});',
                 [val for val in to_insert.values()]
             )
-        app.logger.info(f'{to_insert} was inserted into "{database}/{table}"')
     except (sqlite3.DatabaseError, ValueError) as e:
-        app.logger.error(e)
         raise e
 
 
-def delete_by_id_from_table(app, database: str, table: str, id):
+def delete_by_id_from_table(database: str, table: str, id):
     try:
         with get_connection(database) as conn:
             conn.execute(f'DELETE FROM {table} WHERE Id=?', id)
-        app.logger.info(
-            f'Row with Id={id} was deleted from "{database}/{table}"'
-        )
     except sqlite3.DatabaseError as e:
-        app.logger.error(e)
         raise e
 
 
-def get_pragma_info_of_table(app, database: str, table: str):
+def get_pragma_info_of_table(database: str, table: str):
     try:
         with get_connection(database) as conn:
             pragma = conn.execute(
@@ -66,11 +56,10 @@ def get_pragma_info_of_table(app, database: str, table: str):
             ).fetchall()
         return {tup[0]: tup[1] for tup in pragma}
     except sqlite3.DatabaseError as e:
-        app.logger.error(e)
         raise e
 
 
-def db_table_to_csv(app, database: str, table: str, path: str):
+def db_table_to_csv(database: str, table: str, path: str):
     try:
         with get_connection(database) as conn:
             data = conn.execute(f'SELECT * FROM {table}')
@@ -78,11 +67,7 @@ def db_table_to_csv(app, database: str, table: str, path: str):
                 wr = writer(f, dialect='excel')
                 wr.writerow([header[0] for header in data.description])
                 wr.writerows(data)
-        app.logger.info(
-            f'CSV of "{database}/{table}" was created'
-        )
     except (FileNotFoundError, sqlite3.DatabaseError) as e:
-        app.logger.error(e)
         raise e
 
 
