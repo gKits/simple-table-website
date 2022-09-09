@@ -19,12 +19,16 @@ DELETE = 'DELETE FROM person WHERE Id=?'
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
+        descriptions = db.get_pragma_info_of_table(
+                    app=app,
+                    database=DATABASE,
+                    table=TABLE
+        ).keys()
         data = db.exec(
             app=app,
             database=DATABASE,
             query=f'SELECT * FROM {TABLE}'
         )
-        descriptions = [desc[0] for desc in data.description]
 
         return render_template(
             'index.html',
@@ -52,12 +56,12 @@ def index():
 
 @app.route('/create/', methods=['GET', 'POST'])
 def create():
-    data = db.exec(
-        app=app,
-        database=DATABASE,
-        query=f'SELECT * FROM {TABLE}',
+    pragma = db.get_pragma_info_of_table(
+                    app=app,
+                    database=DATABASE,
+                    table=TABLE
     )
-    descriptions = [desc[0] for desc in data.description]
+    descriptions = pragma.keys()
     if request.method == 'GET':
         return render_template(
             'create.html',
@@ -67,22 +71,16 @@ def create():
     elif request.method == 'POST':
         if request.form['submit'] == 'add_person':
             try:
-                pragma = db.get_pragma_info_of_table(
-                    app=app,
-                    database=DATABASE,
-                    table=TABLE
-                )
                 db.insert_into_table(
                     app=app,
                     database=DATABASE,
                     table=TABLE,
-                    kwargs={
+                    to_insert={
                         title: db.type_casting(
-                            app=app,
                             type=pragma[title],
                             value=request.form[title]
                         )
-                        for title in pragma.keys()
+                        for title in descriptions
                         if request.form[title]
                     }
                 )
