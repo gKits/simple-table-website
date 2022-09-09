@@ -112,6 +112,11 @@ def create():
                 return redirect('/create/')
 
 
+@app.route('/edit')
+def edit(**kwargs):
+    return redirect('/')
+
+
 @app.route('/dlcsv/', methods=['GET'])
 def get_csv():
     return send_file('./csv/output.csv')
