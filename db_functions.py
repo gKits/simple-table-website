@@ -149,7 +149,15 @@ def get_row_not_null_status(database: str, table: str) -> dict:
         raise e
 
 
-def db_table_to_csv(database: str, table: str, path: str):
+def db_table_to_csv(database: str, table: str, path: str) -> None:
+    '''
+    This function will create or write all rows of a given table to a csv file
+
+    :param: database: The name of the database (.db File)
+    :param: table: The name of the table to write the csv from
+    :param: The path to the csv file
+    :return:
+    '''
     try:
         with get_connection(database) as conn:
             data = conn.execute(f'SELECT * FROM {table}')
@@ -161,7 +169,15 @@ def db_table_to_csv(database: str, table: str, path: str):
         raise e
 
 
-def type_casting(type: str, value):
+def type_casting(type: str, value: str) -> object:
+    '''
+    This function will parse a given value to the correct type given by the
+    coresponding SQLite Type
+
+    :param: type: The SQLite Type
+    :param: value: The value to type cast
+    :return: The casted value
+    '''
     TYPE_CASTING = {
         'TEXT': str,
         'INTEGER': int,
