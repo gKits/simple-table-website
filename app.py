@@ -19,18 +19,9 @@ DELETE = 'DELETE FROM person WHERE Id=?'
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
-        descriptions = db.get_pragma_info_of_table(
-                    database=DATABASE,
-                    table=TABLE
-        ).keys()
-        app.logger.info(
-            f'Got row names {descriptions} of "{DATABASE}/{TABLE}"'
-        )
+        descriptions = db.get_row_names(DATABASE, TABLE)
 
-        data = db.exec(
-            database=DATABASE,
-            query=f'SELECT * FROM {TABLE}'
-        )
+        data = db.exec(DATABASE, f'SELECT * FROM {TABLE}')
         app.logger.info(f'Excecuted SELECT * FROM {DATABASE}/{TABLE}')
 
         return render_template(
@@ -61,29 +52,35 @@ def index():
 
 @app.route('/create/', methods=['GET', 'POST'])
 def create():
-    pragma = db.get_pragma_info_of_table(
-                    database=DATABASE,
-                    table=TABLE
-    )
-    descriptions = pragma.keys()
-    app.logger.info(f'Got Pragma table {pragma} of "{DATABASE}/{TABLE}"')
+    descriptions = db.get_row_names(DATABASE, TABLE)
+    types = db.get_row_types(DATABASE, TABLE)
+    default_values = db.get_row_default_values(DATABASE, TABLE)
+    # not_null = db.get_row_not_null_status(DATABASE, TABLE)
 
     if request.method == 'GET':
         return render_template(
             'create.html',
-            inputs=descriptions,
+            inputs=[
+                {
+                    'name': name,
+                    'type': types[name],
+                    'default_value': default_values[name],
+                    # 'not_null': not_null[name]
+                }
+                for name in descriptions
+            ],
             title='Table'
         )
     elif request.method == 'POST':
         if request.form['submit'] == 'add_person':
             try:
                 to_insert = {
-                        title: db.type_casting(
-                            type=pragma[title],
-                            value=request.form[title]
+                        name: db.type_casting(
+                            type=types[name],
+                            value=request.form[name]
                         )
-                        for title in descriptions
-                        if request.form[title]
+                        for name in descriptions
+                        if request.form[name]
                 }
                 db.insert_into_table(
                     database=DATABASE,
