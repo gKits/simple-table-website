@@ -47,12 +47,14 @@ def exec_script(database: str, path_to_script: str):
         raise e
 
 
-def exec_query(database: str, table: str, *query_rows: str, condition=None):
+def exec_query(database: str, table: str, *query_rows: str, condition=''):
     '''
     This function will execute a query statement
 
     :param: database: The name of the database (.db File)
-    :param: condition: The WHERE condition
+    :param: table: The table to query from
+    :param: *query_rows: The rows to display from the query (Enter '*' for all)
+    :param: condition: The WHERE condition (Empty by default)
     :return: Query result as list
     '''
     try:
@@ -69,24 +71,45 @@ def exec_query(database: str, table: str, *query_rows: str, condition=None):
         raise e
 
 
-def insert_into_table(database: str, table: str, **to_insert):
+def insert_into_table(database: str, table: str, **insert_kwargs):
     '''
-    This function will perform an INSERT statement into a given table
+    This function will insert a row from given keyword arguments into
+    a given table
 
     :param: database: The name of the database (.db File)
     :param: table: The name of the table to insert into
-    :param: *parameters: Parameters to replace "?" characters in command
-    :return: Cursor result as list
+    :param: **insert_kwargs: The row parameter to insert
+    :return:
     '''
     try:
         with get_connection(database) as conn:
-            k_string = ', '.join(to_insert.keys())
-            v_string = ', '.join(['?' for _ in to_insert.keys()])
+            k_string = ', '.join(insert_kwargs.keys())
+            v_string = ', '.join(['?' for _ in insert_kwargs.keys()])
             conn.execute(
                 f'INSERT INTO {table} ({k_string}) VALUES({v_string});',
-                [val for val in to_insert.values()]
+                [val for val in insert_kwargs.values()]
             )
     except (sqlite3.DatabaseError, ValueError) as e:
+        raise e
+
+
+def update_row(database: str, table: str, condition: str, **update_kwargs):
+    '''
+    This function will update rows of a given condition from the given
+    keyword arguments
+
+    :param: database: The name of the database (.db File)
+    :param: table: The name of the table to update
+    :param: **update_kwargs: The row parameters to update
+    :return:
+    '''
+    try:
+        with get_connection(database) as conn:
+            set_string = ', '.join(
+                [f'{k} = {v}' for k, v in update_kwargs.items()]
+            )
+            conn.execute(f'UPDATE {table} SET {set_string} WHERE {condition}')
+    except sqlite3.DatabaseError as e:
         raise e
 
 
