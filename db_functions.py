@@ -47,6 +47,28 @@ def exec_script(database: str, path_to_script: str):
         raise e
 
 
+def exec_query(database: str, table: str, *query_rows: str, condition=None):
+    '''
+    This function will execute a query statement
+
+    :param: database: The name of the database (.db File)
+    :param: condition: The WHERE condition
+    :return: Query result as list
+    '''
+    try:
+        with get_connection(database) as conn:
+            if condition:
+                condition = f' WHERE {condition}'
+            else:
+                condition = ''
+            result = conn.execute(
+                f'SELECT {", ".join(query_rows)} FROM {table}{condition}'
+            ).fetchall()
+        return [[entry for entry in row] for row in result]
+    except sqlite3.DatabaseError as e:
+        raise e
+
+
 def insert_into_table(database: str, table: str, **to_insert):
     '''
     This function will perform an INSERT statement into a given table
