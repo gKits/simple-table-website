@@ -20,8 +20,7 @@ DELETE = 'DELETE FROM person WHERE Id=?'
 def index():
     if request.method == 'GET':
         descriptions = db.get_row_names(DATABASE, TABLE)
-
-        data = db.exec(DATABASE, f'SELECT * FROM {TABLE}')
+        data = db.exec_query(DATABASE, TABLE, '*')
         app.logger.info(f'Excecuted SELECT * FROM {DATABASE}/{TABLE}')
 
         return render_template(
@@ -72,23 +71,19 @@ def create():
             title='Table'
         )
     elif request.method == 'POST':
-        if request.form['submit'] == 'add_person':
+        if request.form['submit'] == 'add':
             try:
-                to_insert = {
-                        name: db.type_casting(
-                            type=types[name],
-                            value=request.form[name]
-                        )
-                        for name in descriptions
-                        if request.form[name]
+                insert_kwargs = {
+                    name: db.type_casting(types[name], request.form[name])
+                    for name in descriptions if request.form[name]
                 }
                 db.insert_into_table(
-                    database=DATABASE,
-                    table=TABLE,
-                    to_insert=to_insert
+                    DATABASE,
+                    TABLE,
+                    **insert_kwargs
                 )
                 app.logger.info(
-                    f'Inserted {to_insert} into "{DATABASE}/{TABLE}"'
+                    f'Inserted {insert_kwargs} into "{DATABASE}/{TABLE}"'
                 )
 
                 db.db_table_to_csv(
@@ -109,9 +104,43 @@ def create():
                 return redirect('/create/')
 
 
-@app.route('/edit')
-def edit(**kwargs):
-    return redirect('/')
+@app.route('/edit/<id>/', methods=['GET', 'POST'])
+def edit(id):
+    descriptions = db.get_row_names(DATABASE, TABLE)
+    types = db.get_row_types(DATABASE, TABLE)
+    data = db.exec_query(DATABASE, TABLE, '*', condition=f'Id={id}')
+    if request.method == 'GET':
+        return render_template(
+            'edit.html',
+            inputs=[
+                {
+                    'name': name,
+                    'type': types[name],
+                    'data': data[0][descriptions.index(name)]
+                }
+                for name in descriptions
+            ],
+            title='Table'
+        )
+    elif request.method == 'POST':
+        try:
+            if request.form['submit'] == 'edit':
+                changes = {
+                    name: request.form[name]
+                    for name in descriptions
+                    if request.form[name] != data[0][descriptions.index(name)]
+                }
+                print(changes)
+                db.update_row(DATABASE, TABLE, f'Id={id}', **changes)
+                return redirect('/')
+        except (
+                TypeError,
+                KeyError,
+                sqlite3.DatabaseError,
+                ValueError
+        ) as e:
+            app.logger.error(e)
+            return redirect(f'/edit/{id}')
 
 
 @app.route('/dlcsv/', methods=['GET'])
