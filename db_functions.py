@@ -25,6 +25,7 @@ def exec(database: str, command: str):
     try:
         with get_connection(database) as conn:
             result = conn.execute(command).fetchall()
+            conn.commit()
         return result
     except sqlite3.DatabaseError as e:
         raise e
@@ -42,6 +43,7 @@ def exec_script(database: str, path_to_script: str):
         with get_connection(database) as conn:
             with open(path_to_script, 'r') as f:
                 result = conn.executescript(f.read()).fetchall()
+                conn.commit()
         return result
     except (FileNotFoundError, sqlite3.DatabaseError) as e:
         raise e
@@ -66,6 +68,7 @@ def exec_query(database: str, table: str, *query_rows: str, condition=''):
             result = conn.execute(
                 f'SELECT {", ".join(query_rows)} FROM {table}{condition}'
             ).fetchall()
+            conn.commit()
         return result
     except sqlite3.DatabaseError as e:
         raise e
@@ -89,6 +92,7 @@ def insert_into_table(database: str, table: str, **insert_kwargs):
                 f'INSERT INTO {table} ({k_string}) VALUES({v_string});',
                 [val for val in insert_kwargs.values()]
             )
+            conn.commit()
     except (sqlite3.DatabaseError, ValueError) as e:
         raise e
 
@@ -110,6 +114,7 @@ def update_row(database: str, table: str, condition: str, **update_kwargs):
                 f'UPDATE {table} SET {set_string} WHERE {condition}',
                 [val for val in update_kwargs.values()]
             )
+            conn.commit()
     except sqlite3.DatabaseError as e:
         raise e
 
@@ -127,6 +132,7 @@ def delete_row(database: str, table: str, condition: str):
         with get_connection(database) as conn:
             print(f'DELETE FROM {table} WHERE {condition}')
             conn.execute(f'DELETE FROM {table} WHERE {condition}')
+            conn.commit()
     except sqlite3.DatabaseError as e:
         raise e
 
@@ -144,6 +150,7 @@ def get_row_names(database: str, table: str) -> list:
             pragma = conn.execute(
                 f'SELECT name FROM pragma_table_info("{table}")'
             ).fetchall()
+            conn.commit()
         return [row[0] for row in pragma]
     except sqlite3.DatabaseError as e:
         raise e
@@ -162,6 +169,7 @@ def get_row_types(database: str, table: str) -> dict:
             pragma = conn.execute(
                 f'SELECT name, type FROM pragma_table_info("{table}")'
             ).fetchall()
+            conn.commit()
         return {row[0]: row[1] for row in pragma}
     except sqlite3.DatabaseError as e:
         raise e
@@ -180,6 +188,7 @@ def get_row_default_values(database: str, table: str) -> dict:
             pragma = conn.execute(
                 f'SELECT name, dflt_value FROM pragma_table_info("{table}")'
             ).fetchall()
+            conn.commit()
         return {row[0]: row[1] for row in pragma}
     except sqlite3.DatabaseError as e:
         raise e
@@ -199,6 +208,7 @@ def get_row_not_null_status(database: str, table: str) -> dict:
             pragma = conn.execute(
                 f'SELECT name, notnull FROM pragma_table_info("{table}")'
             ).fetchall()
+            conn.commit()
         return {row[0]: row[1] for row in pragma}
     except sqlite3.DatabaseError as e:
         raise e
@@ -220,6 +230,7 @@ def db_table_to_csv(database: str, table: str, path: str) -> None:
                 wr = writer(f, dialect='excel')
                 wr.writerow([header[0] for header in data.description])
                 wr.writerows(data)
+            conn.commit()
     except (FileNotFoundError, sqlite3.DatabaseError) as e:
         raise e
 
