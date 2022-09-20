@@ -214,7 +214,7 @@ def get_row_not_null_status(database: str, table: str) -> dict:
         raise e
 
 
-def db_table_to_csv(database: str, table: str, path: str) -> None:
+def db_table_to_csv(database: str, table: str, csv_path: str) -> None:
     '''
     This function will create or write all rows of a given table to a csv file
 
@@ -226,11 +226,28 @@ def db_table_to_csv(database: str, table: str, path: str) -> None:
     try:
         with get_connection(database) as conn:
             data = conn.execute(f'SELECT * FROM {table}')
-            with open(path, 'w', newline='') as f:
+            with open(csv_path, 'w', newline='') as f:
                 wr = writer(f, dialect='excel')
                 wr.writerow([header[0] for header in data.description])
                 wr.writerows(data)
             conn.commit()
+    except (FileNotFoundError, sqlite3.DatabaseError) as e:
+        raise e
+
+
+def insert_csv_into_table(database: str, table: str, csv_path: str):
+    '''
+    '''
+    try:
+        with open(csv_path, 'r') as f:
+            csv_table = [line.strip().split(',') for line in f.readlines()]
+            print(csv_table)
+        for entry in csv_table[1:]:
+            kwargs = {
+                name: entry[i]
+                for i, name in enumerate(csv_table[0])
+            }
+            insert_into_table(database, table, **kwargs)
     except (FileNotFoundError, sqlite3.DatabaseError) as e:
         raise e
 
