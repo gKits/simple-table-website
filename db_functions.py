@@ -66,7 +66,7 @@ def exec_query(database: str, table: str, *query_rows: str, condition=''):
             result = conn.execute(
                 f'SELECT {", ".join(query_rows)} FROM {table}{condition}'
             ).fetchall()
-        return [[entry for entry in row] for row in result]
+        return result
     except sqlite3.DatabaseError as e:
         raise e
 
@@ -105,18 +105,28 @@ def update_row(database: str, table: str, condition: str, **update_kwargs):
     '''
     try:
         with get_connection(database) as conn:
-            set_string = ', '.join(
-                [f'{k} = {v}' for k, v in update_kwargs.items()]
+            set_string = ', '.join(f'{key}=?' for key in update_kwargs.keys())
+            conn.execute(
+                f'UPDATE {table} SET {set_string} WHERE {condition}',
+                [val for val in update_kwargs.values()]
             )
-            conn.execute(f'UPDATE {table} SET {set_string} WHERE {condition}')
     except sqlite3.DatabaseError as e:
         raise e
 
 
-def delete_by_id_from_table(database: str, table: str, id):
+def delete_row(database: str, table: str, condition: str):
+    '''
+    This function will update rowSs of a given condition
+
+    :param: database: The name of the database (.db File)
+    :param: table: The name of the table to update
+    :param: condition: The delete condition (e.g. "Id=10")
+    :return:
+    '''
     try:
         with get_connection(database) as conn:
-            conn.execute(f'DELETE FROM {table} WHERE Id=?', id)
+            print(f'DELETE FROM {table} WHERE {condition}')
+            conn.execute(f'DELETE FROM {table} WHERE {condition}')
     except sqlite3.DatabaseError as e:
         raise e
 
