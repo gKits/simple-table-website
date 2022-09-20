@@ -29,7 +29,7 @@ def index():
     db.db_table_to_csv(
         database=app.database,
         table=app.table,
-        path=f"./csv/{app.database}_{app.table}.csv"
+        csv_path=f"./csv/{app.database[:-3]}-{app.table}.csv"
     )
     if request.method == 'GET':
         descriptions = db.get_row_names(app.database, app.table)
@@ -117,27 +117,24 @@ def edit(id):
                 {
                     'name': name,
                     'type': types[name],
-                    'data': data[0][descriptions.index(name)]
+                    'data': data[0][i]
                 }
-                for name in descriptions
+                for i, name in enumerate(descriptions)
             ],
             title='Table'
         )
     elif request.method == 'POST':
         try:
             if request.form['submit'] == 'edit':
-                changes = {
-                    name: request.form[name]
-                    for name in descriptions
-                    if request.form[name] != (
-                        data[0][descriptions.index(name)]
-                    )
-                }
                 db.update_row(
                     app.database,
                     app.table,
                     f'Id={id}',
-                    **changes
+                    **{
+                        name: request.form[name]
+                        for i, name in enumerate(descriptions)
+                        if request.form[name] != data[0][i]
+                    }
                 )
                 return redirect('/')
         except (
@@ -155,7 +152,7 @@ def get_csv():
     return send_file('./csv/output.csv')
 
 
-def run(database: str, table: str, port: int = 5000):
+def run(database: str, table: str, port: int):
     app.database = database
     app.table = table
     app.port = port
@@ -163,4 +160,4 @@ def run(database: str, table: str, port: int = 5000):
 
 
 if __name__ == '__main__':
-    run('database.db', 'Person', 5000)
+    run('database.db', 'Person')
