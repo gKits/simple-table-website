@@ -1,4 +1,3 @@
-import sqlite3
 import db_functions as db
 from flask import (
     Flask,
@@ -7,21 +6,34 @@ from flask import (
     redirect,
     send_file
 )
+from sqlite3 import DatabaseError
 
 
-app = Flask(__name__)
-DATABASE = 'database.db'
-TABLE = 'Person'
-INSERT = 'INSERT INTO Person (Name, Firstname, Age) VALUES (?, ?, ?)'
-DELETE = 'DELETE FROM person WHERE Id=?'
+class App:
+
+    def __init__(self, database: str, table: str, port: int = 5000):
+        self.app = Flask(__name__)
+        self.database = database
+        self.table = table
+        self.port = port
+
+    def start(self):
+        self.app.run(use_reloader=True, debug=True, port=self.port)
 
 
-@app.route('/', methods=['GET', 'POST'])
+app = App(database='database.db', table='Person')
+
+
+@app.app.route('/', methods=['GET', 'POST'])
 def index():
+    db.db_table_to_csv(
+        database=app.database,
+        table=app.table,
+        path=f"./csv/{app.database}_{app.table}.csv"
+    )
     if request.method == 'GET':
-        descriptions = db.get_row_names(DATABASE, TABLE)
-        data = db.exec_query(DATABASE, TABLE, '*')
-        app.logger.info(f'Excecuted SELECT * FROM {DATABASE}/{TABLE}')
+        descriptions = db.get_row_names(app.database, app.table)
+        data = db.exec_query(app.database, app.table, '*')
 
         return render_template(
             'index.html',
@@ -32,29 +44,20 @@ def index():
 
     elif request.method == 'POST':
         id = request.form['delete']
-        db.delete_by_id_from_table(
-            database=DATABASE,
-            table=TABLE,
-            id=id
-        )
-        app.logger.info(f'Row with Id={id} deleted from "{DATABASE}/{TABLE}"')
-
-        db.db_table_to_csv(
-            database=DATABASE,
-            table=TABLE,
-            path=f"./csv/{DATABASE}_{TABLE}.csv"
-        )
-        app.logger.info(f'CSV table created from "{DATABASE}/{TABLE}"')
+        db.delete_row(app.database, app.table, f'Id={id}')
 
         return redirect('/')
 
 
-@app.route('/create/', methods=['GET', 'POST'])
+@app.app.route('/create/', methods=['GET', 'POST'])
 def create():
-    descriptions = db.get_row_names(DATABASE, TABLE)
-    types = db.get_row_types(DATABASE, TABLE)
-    default_values = db.get_row_default_values(DATABASE, TABLE)
-    # not_null = db.get_row_not_null_status(DATABASE, TABLE)
+    descriptions = db.get_row_names(app.database, app.table)
+    types = db.get_row_types(app.database, app.table)
+    default_values = db.get_row_default_values(
+        app.database,
+        app.table
+    )
+    # not_null = db.get_row_not_null_status(self.database, self.table)
 
     if request.method == 'GET':
         return render_template(
@@ -74,41 +77,39 @@ def create():
         if request.form['submit'] == 'add':
             try:
                 insert_kwargs = {
-                    name: db.type_casting(types[name], request.form[name])
+                    name: db.type_casting(
+                        types[name],
+                        request.form[name]
+                    )
                     for name in descriptions if request.form[name]
                 }
                 db.insert_into_table(
-                    DATABASE,
-                    TABLE,
+                    app.database,
+                    app.table,
                     **insert_kwargs
                 )
-                app.logger.info(
-                    f'Inserted {insert_kwargs} into "{DATABASE}/{TABLE}"'
-                )
-
-                db.db_table_to_csv(
-                    database=DATABASE,
-                    table=TABLE,
-                    path=f"./csv/{DATABASE}_{TABLE}.csv"
-                )
-                app.logger.info(f'CSV table created from "{DATABASE}/{TABLE}"')
 
                 return redirect('/')
             except (
                 TypeError,
                 KeyError,
-                sqlite3.DatabaseError,
+                DatabaseError,
                 ValueError
             ) as e:
-                app.logger.error(e)
+                app.app.logger.error(e)
                 return redirect('/create/')
 
 
-@app.route('/edit/<id>/', methods=['GET', 'POST'])
+@app.app.route('/edit/<id>/', methods=['GET', 'POST'])
 def edit(id):
-    descriptions = db.get_row_names(DATABASE, TABLE)
-    types = db.get_row_types(DATABASE, TABLE)
-    data = db.exec_query(DATABASE, TABLE, '*', condition=f'Id={id}')
+    descriptions = db.get_row_names(app.database, app.table)
+    types = db.get_row_types(app.database, app.table)
+    data = db.exec_query(
+        app.database,
+        app.table,
+        '*',
+        condition=f'Id={id}'
+    )
     if request.method == 'GET':
         return render_template(
             'edit.html',
@@ -128,30 +129,38 @@ def edit(id):
                 changes = {
                     name: request.form[name]
                     for name in descriptions
-                    if request.form[name] != data[0][descriptions.index(name)]
+                    if request.form[name] != (
+                        data[0][descriptions.index(name)]
+                    )
                 }
-                print(changes)
-                db.update_row(DATABASE, TABLE, f'Id={id}', **changes)
+                db.update_row(
+                    app.database,
+                    app.table,
+                    f'Id={id}',
+                    **changes
+                )
                 return redirect('/')
         except (
                 TypeError,
                 KeyError,
-                sqlite3.DatabaseError,
+                DatabaseError,
                 ValueError
         ) as e:
-            app.logger.error(e)
+            app.app.logger.error(e)
             return redirect(f'/edit/{id}')
 
 
-@app.route('/dlcsv/', methods=['GET'])
+@app.app.route('/dlcsv/', methods=['GET'])
 def get_csv():
     return send_file('./csv/output.csv')
 
 
-def main(database: str, table_to_display: str):
-    pass
+def run(database: str, table: str, port: int = 5000):
+    app.database = database
+    app.table = table
+    app.port = port
+    app.start()
 
 
 if __name__ == '__main__':
-    # main()
-    app.run(use_reloader=True, debug=True)
+    run('database.db', 'Person', 5000)
