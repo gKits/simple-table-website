@@ -8,4 +8,4 @@ CREATE TABLE Person (
 );
 
 INSERT INTO Person (Name, Firstname, Age)
-VALUES("Mustermann", "Max", 99)
+VALUES("Joe", "Schmoe", 35);
