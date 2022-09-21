@@ -2,11 +2,10 @@
 This is a simple website written in Python with Flask that displays a SQL Table
 ---
 ## Setup
-
-### Initialize SQLite Database
-
-#### 1. Create SQL Schematics  
-Create a file named `schema.sql` (or edit the existing one) and add it to the `./sql_schematics/` directory. Create your desired table structure.  
+###Provision database
+#### Create SQL Schematics  
+Create `.sql` file in the directory `./sql_schematics/`
+Create your desired table structure.  
 Design ruling of the table that should be displayed:  
 - The table has to have a column specifically named `Id` that has to be `UNIQUE`.  
 It is recommended to use `Id INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT` to avoid problems.  
@@ -23,12 +22,9 @@ CREATE TABLE Person (
     Firstname TEXT NOT NULL,
     Age INTEGER NOT NULL
 );
-
-INSERT INTO Person (Name, Firstname, Age)
-VALUES("Reeves", "Keanu", 58)
 ```
 #### 2. Provision databse
-Run `python init_db.py` to create the database file
+Run `python provision_db.py [database] [sql_schematics...] [-c ]` to create the database file
 
 #### 3. Run app  
 Run `python app.py`  
