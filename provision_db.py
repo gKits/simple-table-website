@@ -35,7 +35,7 @@ def main():
         'sql',
         type=str,
         nargs='+',
-        metavar='[path_to_sql1] [path_to_sql2] ...',
+        metavar='[path_to_sql]',
         help='Paths to sql schematics with the table structure'
     )
 
