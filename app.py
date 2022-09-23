@@ -9,7 +9,7 @@ from flask import (
 from sqlite3 import DatabaseError
 
 
-class App:
+class TableApp:
 
     def __init__(self, database: str, table: str, port: int = 5000):
         self.app = Flask(__name__)
@@ -21,7 +21,7 @@ class App:
         self.app.run(use_reloader=True, debug=True, port=self.port)
 
 
-app = App(database='database.db', table='Person')
+app = TableApp(database='database.db', table='Person')
 
 
 @app.app.route('/', methods=['GET', 'POST'])
