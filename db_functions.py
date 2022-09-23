@@ -121,7 +121,7 @@ def update_row(database: str, table: str, condition: str, **update_kwargs):
 
 def delete_row(database: str, table: str, condition: str):
     '''
-    This function will update rowSs of a given condition
+    This function will delete rows of a given condition
 
     :param: database: The name of the database (.db File)
     :param: table: The name of the table to update
@@ -130,7 +130,6 @@ def delete_row(database: str, table: str, condition: str):
     '''
     try:
         with get_connection(database) as conn:
-            print(f'DELETE FROM {table} WHERE {condition}')
             conn.execute(f'DELETE FROM {table} WHERE {condition}')
             conn.commit()
     except sqlite3.DatabaseError as e:
@@ -241,7 +240,6 @@ def insert_csv_into_table(database: str, table: str, csv_path: str):
     try:
         with open(csv_path, 'r') as f:
             csv_table = [line.strip().split(',') for line in f.readlines()]
-            print(csv_table)
         for entry in csv_table[1:]:
             kwargs = {
                 name: entry[i]

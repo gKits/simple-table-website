@@ -10,57 +10,63 @@ def provision_db(args: dict):
     if path.isfile(args['database']):
         return
 
-    for sql in args['sql']:
-        db.exec_script(args['database'], f'./sql_schematics/{sql}')
+    if path.isfile(args['sql']):
+        db.exec_script(args['database'], args['sql'])
 
-    for table in args['csv']:
-        if path.isfile(table[1]):
-            db.insert_csv_into_table(args['database'], table[0], table[1])
+    if args['insert']:
+        for table in args['insert']:
+            if path.isfile(table[1]):
+                db.insert_csv_into_table(args['database'], table[0], table[1])
 
 
 def main():
     parser = argparse.ArgumentParser(
         'provision_db',
-        description='Options for the DB proviosioning for your table website'
+        description='Options for the DB proviosioning for your table website',
+        allow_abbrev=False
     )
 
     parser.add_argument(
-        'database',
+        '-s', '--sql',
+        required=True,
         type=str,
-        metavar='[db_file_name]',
-        help='The name of the database file'
+        metavar='/path/to/sql_file.sql',
+        help='Name of the sql scripts definining your table structure'
     )
 
     parser.add_argument(
-        'sql',
+        '-d', '--database',
+        type=str,
+        default='./db/database.db',
+        nargs='?',
+        metavar='/path/to/db_file.db',
+        help='Specify database name [Default "./db/database.db"]'
+    )
+
+    parser.add_argument(
+        '-i', '--insert',
         type=str,
         nargs='+',
-        metavar='[path_to_sql]',
-        help='Paths to sql schematics with the table structure'
+        metavar='name_table1 /path/to/csv_table1.csv ...',
+        help='Insert csv files into the corresponding tables'
     )
 
     parser.add_argument(
-        '-in', '--insert',
-        type=str,
-        action='append',
-        metavar='[table1_name] [csv_table1] [table2_name] [csv_table2] ...',
-        help='Tuples of table names and paths to csv containing data to insert'
-    )
-
-    parser.add_argument(
-        '-re', '--reprovision',
-        action='store_true'
+        '-r', '--reprovision',
+        action='store_true',
+        help='If the database already exists it will be deleted and reprovisioned'
     )
 
     args = vars(parser.parse_args())
 
-    if args['csv'] is not None:
-        args['csv'] = [
-            (csv, args['csv'][i + 1])
-            for i, csv in enumerate(args['csv']) if i % 2 == 0
+    if args['insert'] is not None:
+        args['insert'] = [
+            (csv, args['insert'][i + 1])
+            for i, csv in enumerate(args['insert']) if i % 2 == 0
         ]
 
     print(args)
+    provision_db(args)
 
 
 if __name__ == '__main__':

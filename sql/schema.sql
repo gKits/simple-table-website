@@ -4,7 +4,7 @@ CREATE TABLE Person (
     Id INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT,
     Name TEXT NOT NULL,
     Firstname TEXT NOT NULL,
-    Age INTEGER NOT NULL
+    Age INTEGER
 );
 
 INSERT INTO Person (Name, Firstname, Age)

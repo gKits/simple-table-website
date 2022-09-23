@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 
 import argparse
-from app import run
+from email.policy import default
+from app import start
 
 
 def main():
@@ -10,20 +11,13 @@ def main():
         description='Website arguments'
     )
     parser.add_argument(
-        '-d', '--database',
+        'database',
         type=str,
-        action='store',
-        nargs='?',
-        const='database.db',
-        help='''The name of the database file containing the data.
-             Default value = "database.db"
-             [Will be created if does not exist]'''
+        help='The name of the database file containing the data.'
     )
     parser.add_argument(
-        '-t', '--table',
+        'table',
         type=str,
-        action='store',
-        nargs='?',
         help='The name of the table that you want to display.'
     )
     parser.add_argument(
@@ -31,13 +25,13 @@ def main():
         type=int,
         action='store',
         nargs='?',
-        const=5000,
+        default=5000,
         help='''The port you want to run the application on.
              Default value = 5000'''
     )
 
     args = vars(parser.parse_args())
-    run(database=args['database'], table=args['table'], port=args['port'])
+    start(database=args['database'], table=args['table'], port=args['port'])
 
 
 if __name__ == '__main__':
