@@ -31,16 +31,10 @@ class Database:
     def insert_row_into_table(self, table: str, **kwargs):
         pragma_info = self.get_pragma_table_info(table, 'type')
         keys_str = dumps(list(kwargs.keys()))[1:-1]
-        values = [
-            self.type_casting(pragma_info[k]["type"], v)
-            for k, v in kwargs.items()
-        ]
+        values = [self.type_casting(pragma_info[k]["type"], v) for k, v in kwargs.items()]
         vals_str = ", ".join(["?" for _ in values])
         with self.conn() as conn:
-            conn.execute(
-                f'INSERT INTO {table} ({keys_str}) VALUES ({vals_str})',
-                values
-            )
+            conn.execute(f'INSERT INTO {table} ({keys_str}) VALUES ({vals_str})', values)
             conn.commit()
 
     def delete_row_from_table(self, table: str, condition: str):
@@ -51,15 +45,9 @@ class Database:
     def update_rows_in_table(self, table: str, condition: str, **kwargs):
         pragma_info = self.get_pragma_table_info(table, 'type')
         set_string = ', '.join(f'{key}=?' for key in kwargs.keys())
-        values = [
-            self.type_casting(pragma_info[k]["type"], v)
-            for k, v in kwargs.items()
-        ]
+        values = [self.type_casting(pragma_info[k]["type"], v) for k, v in kwargs.items()]
         with self.conn() as conn:
-            conn.execute(
-                f'UPDATE {table} SET {set_string} WHERE {condition}',
-                values
-            )
+            conn.execute(f'UPDATE {table} SET {set_string} WHERE {condition}', values)
             conn.commit()
 
     def insert_from_csv_into_table(self, table: str, csv_path: str):
@@ -94,10 +82,7 @@ class Database:
 
     def get_pragma_table_info(self, table: str, *args):
         with self.conn() as conn:
-            pragma = conn.execute(
-                f'SELECT name, {", ".join(args)} '
-                f'FROM pragma_table_info("{table}")'
-            ).fetchall()
+            pragma = conn.execute(f'SELECT name, {", ".join(args)} FROM pragma_table_info("{table}")').fetchall()
             conn.commit()
         return {
             row[0]: {arg: row[i + 1] for i, arg in enumerate(args)}
