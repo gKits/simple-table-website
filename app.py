@@ -29,7 +29,7 @@ class TableView(FlaskView):
         else:
             return redirect('/')
 
-    @route('/create', methods=['GET', 'POST'])
+    @route('/create/', methods=['GET', 'POST'])
     def create(self):
         pragma_info = self.db.get_pragma_table_info(
             self.table,
@@ -41,11 +41,11 @@ class TableView(FlaskView):
                 'create.html',
                 inputs=[
                     {
-                        'name': k,
-                        'type': pragma_info['type'],
-                        'default_value': pragma_info['dflt_value']
+                        'name': name,
+                        'type': pragma_info[name]['type'],
+                        'default_value': pragma_info[name]['dflt_value']
                     }
-                    for k in pragma_info.keys()
+                    for name in pragma_info.keys()
                 ],
                 title=self.title
             )
@@ -57,22 +57,61 @@ class TableView(FlaskView):
                         **{
                             name: request.form[name]
                             for name in pragma_info.keys()
+                            if request.form[name]
                         }
                     )
                     return redirect('/')
-                except (TypeError, KeyError, ValueError, DatabaseError):
+                except (TypeError, KeyError, ValueError, DatabaseError) as e:
+                    print(e)
                     return redirect('/create')
         else:
             return redirect('/')
 
-    @route('/edit/<table>/<id>', methods=['GET', 'POST'])
-    def edit(self, table, id):
+    @route('/edit/<id>/', methods=['GET', 'POST'])
+    def edit(self, id):
+        pragma_info = self.db.get_pragma_table_info(
+            self.table,
+            'type',
+            'dflt_value'
+        )
+        data = self.db.exec(
+            f'SELECT * FROM {self.table} WHERE {self.table_pk}={id}'
+        )
+
         if request.method == 'GET':
-            pass
-        if request.method == 'POST':
-            pass
-        else:
-            return redirect('/')
+            return render_template(
+                'edit.html',
+                inputs=[
+                    {
+                        'name': name,
+                        'type': pragma_info[name]['type'],
+                        'data': data[0][i]
+                    }
+                    for i, name in enumerate(pragma_info.keys())
+                ],
+                title=self.title
+            )
+        elif request.method == 'POST':
+            try:
+                if request.form['submit'] == 'edit':
+                    self.db.update_rows_in_table(
+                        self.table,
+                        f'{self.table_pk}={id}',
+                        **{
+                            name: request.form[name]
+                            for i, name in enumerate(pragma_info.keys())
+                            if request.form[name] != data[0][i]
+                        }
+                    )
+                    return redirect('/')
+            except (
+                    TypeError,
+                    KeyError,
+                    DatabaseError,
+                    ValueError
+            ) as e:
+                print(e)
+                return redirect(f'/edit/{id}')
 
 
 def run(
@@ -84,12 +123,13 @@ def run(
     app = Flask(name)
     TableView.register(
         app,
+        route_base='/',
         init_argument={
             'db_path': db_path,
             'displayed_table': table
         }
     )
-    app.run(port=port)
+    app.run(use_reloader=True, port=port)
 
 
 if __name__ == '__main__':
