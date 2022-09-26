@@ -1,6 +1,5 @@
 import argparse
 import sys
-from os import path
 from app import run
 from provision_db import provision_db
 
@@ -45,9 +44,9 @@ def main():
     used_sub_parser, args = parse_args()
 
     if used_sub_parser == 'database':
-        provision_db()
+        provision_db(db_path=args['database'], sql_dir=args["sqldir"], sql_paths=args['sql'], insert_tables=args['insert'], reprovision=args['reprovision'])
     elif used_sub_parser == 'run':
-        run()
+        run(db_path=args['database'], table=args['table'], name=args['name'], port=args['port'])
 
 
 if __name__ == '__main__':
