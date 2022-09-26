@@ -71,7 +71,6 @@ class Database:
 
     def get_table_pk(self, table):
         pragma_info = self.get_pragma_table_info(table, 'pk')
-        print(pragma_info)
         for k, v in pragma_info.items():
             if v['pk'] == 1:
                 return k
