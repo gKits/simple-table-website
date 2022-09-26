@@ -67,12 +67,11 @@ class Database:
             self.insert_row_into_table(table, **kwargs)
 
     def export_table_to_csv(self, table: str, csv_path: str):
-        with self.conn() as conn:
+        with self.conn() as conn, open(csv_path, 'w', newline='') as f:
             data = conn.execute(f'SELECT * FROM {table}')
-            with open(csv_path, 'w', newline='') as f:
-                wr = writer(f, dialect='excel')
-                wr.writerow([header[0] for header in data.description])
-                wr.writerows(data)
+            wr = writer(f, dialect='excel')
+            wr.writerow([header[0] for header in data.description])
+            wr.writerows(data)
             conn.commit()
 
     def row_names_of_table(self, table):
