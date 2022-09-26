@@ -1,6 +1,7 @@
 import sqlite3 as sql
 from csv import writer
 from os import path
+from json import dumps
 
 
 class Database:
@@ -17,7 +18,7 @@ class Database:
         return conn
 
     def exec(self, exec_statement: str):
-        with self.conn as conn:
+        with self.conn() as conn:
             result = conn.execute(exec_statement).fetchall()
             conn.commit()
         return result
@@ -29,20 +30,36 @@ class Database:
 
     def insert_row_into_table(self, table: str, **kwargs):
         pragma_info = self.get_pragma_table_info(table, 'type')
+        keys_str = dumps(list(kwargs.keys()))[1:-1]
         values = [
-            self.type_casting(pragma_info[k]["type"], k)
-            for k in kwargs.keys()
+            self.type_casting(pragma_info[k]["type"], v)
+            for k, v in kwargs.items()
         ]
+        vals_str = ", ".join(["?" for _ in values])
         with self.conn() as conn:
             conn.execute(
-                f'INSERT INTO {table} ({list(kwargs.keys())}) '
-                f'VALUES ({", ".join(values)})'
+                f'INSERT INTO {table} ({keys_str}) VALUES ({vals_str})',
+                values
             )
             conn.commit()
 
     def delete_row_from_table(self, table: str, condition: str):
         with self.conn() as conn:
             conn.execute(f'DELETE FROM {table} WHERE {condition}')
+            conn.commit()
+
+    def update_rows_in_table(self, table: str, condition: str, **kwargs):
+        pragma_info = self.get_pragma_table_info(table, 'type')
+        set_string = ', '.join(f'{key}=?' for key in kwargs.keys())
+        values = [
+            self.type_casting(pragma_info[k]["type"], v)
+            for k, v in kwargs.items()
+        ]
+        with self.conn() as conn:
+            conn.execute(
+                f'UPDATE {table} SET {set_string} WHERE {condition}',
+                values
+            )
             conn.commit()
 
     def insert_from_csv_into_table(self, table: str, csv_path: str):
