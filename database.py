@@ -23,6 +23,12 @@ class Database:
             conn.commit()
         return result
 
+    def exec_script(self, script_path: str):
+        with self.conn() as conn, open(script_path) as f:
+            result = conn.executescript(f).fetchall()
+            conn.commit()
+        return result
+
     def create_table(self, title: str, *parameters: str):
         with self.conn() as conn:
             conn.execute(f'CREATE TABLE {title}({", ".join(parameters)});')
