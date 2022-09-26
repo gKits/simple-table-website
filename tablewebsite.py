@@ -5,7 +5,7 @@ from provision_db import provision_db
 
 
 def parse_args():
-    parser = argparse.ArgumentParser('Table website', description='A small and interactive Flask website displaying the data of a SQLite DB')
+    parser = argparse.ArgumentParser('tablewebsite', description='A small and interactive Flask website displaying the data of a SQLite DB')
 
     # Sub parsers
     sub_parser = parser.add_subparsers(required=True)
@@ -13,14 +13,14 @@ def parse_args():
     parser_db = sub_parser.add_parser('database', help='Function for provisioning your SQLite DB')
 
     # Run parser arguments
-    parser_run.add_argument('database', type=str, metavar='/path/to/database.db', help='.db file runnning your database')
     parser_run.add_argument('table', type=str, help='Name of the table you want to display')
-    parser_run.add_argument('-n', '--name', type=str, nargs='?', default='tableapp', help='Specify your websites name')
-    parser_run.add_argument('-p', '--port', type=int, nargs='?', default=5000, help='Port you want to run the website on')
+    parser_run.add_argument('-d', '--database', type=str, metavar='/path/to/database.db', default='./db/database.db', help='Path to .db file runnning your database')
+    parser_run.add_argument('-n', '--name', type=str, nargs='?', default='tableapp', help='Name your websites')
+    parser_run.add_argument('-p', '--port', type=int, nargs='?', default=5000, help='Specify the port you want to run the website on')
 
     # DB parser arguments
     group_db_sql = parser_db.add_mutually_exclusive_group()
-    parser_db.add_argument('-d', '--database', type=str, metavar='/path/to/database.db', default='./db/database.db', help='.db file runnning your database')
+    parser_db.add_argument('-d', '--database', type=str, metavar='/path/to/database.db', default='./db/database.db', help='Path to .db file runnning your database')
     group_db_sql.add_argument('-s', '--sql', type=str, nargs='+', metavar='/path/to/scheme.sql', help='Use specific .sql files to run on DB')
     group_db_sql.add_argument('-S', '--sqldir', type=str, nargs='?', metavar='/dir/with/sqls/database-tablename.csv', default='./sql/', help='Use a specific directory containing .sql files to run on DB')
     parser_db.add_argument('-i', '--insert', type=str, nargs='+', metavar='tablename /path/to/table.csv', help='Tuple of tablename and csv table to insert into DB')
