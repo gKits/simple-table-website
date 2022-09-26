@@ -1,17 +1,18 @@
 import sqlite3 as sql
 from csv import writer
+from os import path
 
 
-class Datbase:
+class Database:
 
-    def __init__(self, path: str, name: str = 'database'):
-        self.path = path
-        self.name = name
+    def __init__(self, db_path: str):
+        self.db_path = db_path
+        self.name = path.split(db_path)[1][:-3]
 
         self.conn()
 
     def conn(self):
-        conn = sql.connect(self.path)
+        conn = sql.connect(self.db_path)
         conn.row_factory = sql.Row
         return conn
 
@@ -27,10 +28,15 @@ class Datbase:
             conn.commit()
 
     def insert_row_into_table(self, table: str, **kwargs):
+        pragma_info = self.get_pragma_table_info(table, 'type')
+        values = [
+            self.type_casting(pragma_info[k]["type"], k)
+            for k in kwargs.keys()
+        ]
         with self.conn() as conn:
             conn.execute(
                 f'INSERT INTO {table} ({list(kwargs.keys())}) '
-                f'VALUES ({list(kwargs.values())})'
+                f'VALUES ({", ".join(values)})'
             )
             conn.commit()
 
@@ -57,6 +63,18 @@ class Datbase:
                 wr.writerow([header[0] for header in data.description])
                 wr.writerows(data)
             conn.commit()
+
+    def row_names_of_table(self, table):
+        with self.conn() as conn:
+            data = conn.execute(f'SELECT * FROM {table}')
+            print(data.description)
+
+    def get_table_pk(self, table):
+        pragma_info = self.get_pragma_table_info(table, 'pk')
+        print(pragma_info)
+        for k, v in pragma_info.items():
+            if v['pk'] == 1:
+                return k
 
     def get_pragma_table_info(self, table: str, *args):
         with self.conn() as conn:
