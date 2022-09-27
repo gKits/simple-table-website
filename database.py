@@ -8,8 +8,7 @@ class Database:
 
     def __init__(self, db_path: str):
         self.db_path = db_path
-        self.name = path.split(db_path)[1][:-3]
-
+        self.name = path.split(db_path)[-1].split('.')[0]
         self.conn()
 
     def conn(self):
