@@ -1,163 +1,109 @@
-import db_functions as db
-from flask import (
-    Flask,
-    render_template,
-    request,
-    redirect,
-    send_file
-)
 from sqlite3 import DatabaseError
+from flask import Flask, request, redirect, render_template
+from flask_classful import FlaskView, route
+from database import Database
 
 
-class App:
+class TableView(FlaskView):
+    def __init__(self, my_init_argument):
+        self.db = Database(my_init_argument['db_path'])
+        self.table = my_init_argument['displayed_table']
+        self.table_pk = self.db.get_table_pk(self.table)
+        self.title = f'{self.db.name}.{self.table}'
 
-    def __init__(self, database: str, table: str, port: int = 5000):
-        self.app = Flask(__name__)
-        self.database = database
-        self.table = table
-        self.port = port
+    @route('/', methods=['GET', 'POST'])
+    def index(self):
+        if request.method == 'GET':
+            pragma_info = self.db.get_pragma_table_info(self.table, 'cid')
+            data = self.db.exec(f'SELECT * FROM {self.table}')
+            return render_template('index.html', headings=list(pragma_info.keys()), data=data, title=self.title)
+        if request.method == 'POST':
+            id = request.form['delete']
+            self.db.delete_row_from_table(self.table, f'{self.table_pk}={id}')
+            return redirect('/')
+        else:
+            return redirect('/')
 
-    def start(self):
-        self.app.run(use_reloader=True, debug=True, port=self.port)
-
-
-app = App(database='database.db', table='Person')
-
-
-@app.app.route('/', methods=['GET', 'POST'])
-def index():
-    db.db_table_to_csv(
-        database=app.database,
-        table=app.table,
-        csv_path=f"./csv/{app.database[:-3]}-{app.table}.csv"
-    )
-    if request.method == 'GET':
-        descriptions = db.get_row_names(app.database, app.table)
-        data = db.exec_query(app.database, app.table, '*')
-
-        return render_template(
-            'index.html',
-            headings=descriptions,
-            data=data,
-            title='Table'
-        )
-
-    elif request.method == 'POST':
-        id = request.form['delete']
-        db.delete_row(app.database, app.table, f'Id={id}')
-
-        return redirect('/')
-
-
-@app.app.route('/create/', methods=['GET', 'POST'])
-def create():
-    descriptions = db.get_row_names(app.database, app.table)
-    types = db.get_row_types(app.database, app.table)
-    default_values = db.get_row_default_values(
-        app.database,
-        app.table
-    )
-    # not_null = db.get_row_not_null_status(self.database, self.table)
-
-    if request.method == 'GET':
-        return render_template(
-            'create.html',
-            inputs=[
-                {
-                    'name': name,
-                    'type': types[name],
-                    'default_value': default_values[name],
-                    # 'not_null': not_null[name]
-                }
-                for name in descriptions
-            ],
-            title='Table'
-        )
-    elif request.method == 'POST':
-        if request.form['submit'] == 'add':
-            try:
-                insert_kwargs = {
-                    name: db.type_casting(
-                        types[name],
-                        request.form[name]
-                    )
-                    for name in descriptions if request.form[name]
-                }
-                db.insert_into_table(
-                    app.database,
-                    app.table,
-                    **insert_kwargs
-                )
-
-                return redirect('/')
-            except (
-                TypeError,
-                KeyError,
-                DatabaseError,
-                ValueError
-            ) as e:
-                app.app.logger.error(e)
-                return redirect('/create/')
-
-
-@app.app.route('/edit/<id>/', methods=['GET', 'POST'])
-def edit(id):
-    descriptions = db.get_row_names(app.database, app.table)
-    types = db.get_row_types(app.database, app.table)
-    data = db.exec_query(
-        app.database,
-        app.table,
-        '*',
-        condition=f'Id={id}'
-    )
-    if request.method == 'GET':
-        return render_template(
-            'edit.html',
-            inputs=[
-                {
-                    'name': name,
-                    'type': types[name],
-                    'data': data[0][i]
-                }
-                for i, name in enumerate(descriptions)
-            ],
-            title='Table'
-        )
-    elif request.method == 'POST':
-        try:
-            if request.form['submit'] == 'edit':
-                db.update_row(
-                    app.database,
-                    app.table,
-                    f'Id={id}',
-                    **{
-                        name: request.form[name]
-                        for i, name in enumerate(descriptions)
-                        if request.form[name] != data[0][i]
+    @route('/create/', methods=['GET', 'POST'])
+    def create(self):
+        pragma_info = self.db.get_pragma_table_info(self.table, 'type', 'dflt_value')
+        if request.method == 'GET':
+            return render_template(
+                'create.html',
+                title=self.title,
+                inputs=[
+                    {
+                        'name': name,
+                        'type': pragma_info[name]['type'],
+                        'default_value': pragma_info[name]['dflt_value']
                     }
-                )
-                return redirect('/')
-        except (
-                TypeError,
-                KeyError,
-                DatabaseError,
-                ValueError
-        ) as e:
-            app.app.logger.error(e)
-            return redirect(f'/edit/{id}')
+                    for name in pragma_info.keys()
+                ]
+            )
+        if request.method == 'POST':
+            if request.form['submit'] == 'add':
+                try:
+                    self.db.insert_row_into_table(
+                        table=self.table,
+                        **{
+                            name: request.form[name]
+                            for name in pragma_info.keys()
+                            if request.form[name]
+                        }
+                    )
+                    return redirect('/')
+                except (TypeError, KeyError, ValueError, DatabaseError):
+                    return redirect('/create')
+        else:
+            return redirect('/')
+
+    @route('/edit/<id>/', methods=['GET', 'POST'])
+    def edit(self, id):
+        pragma_info = self.db.get_pragma_table_info(self.table, 'type', 'dflt_value')
+        data = self.db.exec(f'SELECT * FROM {self.table} WHERE {self.table_pk}={id}')
+
+        if request.method == 'GET':
+            return render_template(
+                'edit.html',
+                title=self.title,
+                inputs=[
+                    {
+                        'name': name,
+                        'type': pragma_info[name]['type'],
+                        'data': data[0][i]
+                    }
+                    for i, name in enumerate(pragma_info.keys())
+                ]
+            )
+        elif request.method == 'POST':
+            try:
+                if request.form['submit'] == 'edit':
+                    self.db.update_rows_in_table(
+                        table=self.table,
+                        condition=f'{self.table_pk}={id}',
+                        **{
+                            name: request.form[name]
+                            for i, name in enumerate(pragma_info.keys())
+                            if request.form[name] != data[0][i]
+                        }
+                    )
+                    return redirect('/')
+            except (TypeError, KeyError, DatabaseError, ValueError):
+                return redirect(f'/edit/{id}')
 
 
-@app.app.route('/dlcsv/', methods=['GET'])
-def get_csv():
-    return send_file('./csv/output.csv')
-
-
-def run(database: str, table: str, port: int):
-    app.database = database
-    app.table = table
-    app.port = port
-    app.start()
+def run(db_path: str, table: str, name: str = None, port: int = None):
+    app = Flask(name)
+    TableView.register(
+        app,
+        route_base='/',
+        init_argument={
+            'db_path': db_path,
+            'displayed_table': table
+        }
+    )
+    app.run(use_reloader=True, port=port)
 
 
 if __name__ == '__main__':
-    run('database.db', 'Person')
+    run('./db/database.db', 'Person')
