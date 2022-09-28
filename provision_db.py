@@ -9,7 +9,7 @@ def provision_db(db_path: str = '', sql_dir: str = '', sql_paths: list = [], ins
 
     db = Database(db_path)
 
-    if sql_paths != []:
+    if sql_paths:
         for sql in sql_paths:
             db.exec_script(sql)
     else:
@@ -17,6 +17,6 @@ def provision_db(db_path: str = '', sql_dir: str = '', sql_paths: list = [], ins
             sql = join(sql_dir, filename)
             db.exec_script(sql)
 
-    if insert_tables != []:
+    if insert_tables:
         for tablename, csv in insert_tables:
             db.insert_from_csv_into_table(tablename, csv)
