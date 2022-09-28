@@ -34,7 +34,7 @@ def parse_args():
     if used_sub_parser == 'database':
         if args['insert'] and len(args['insert']) % 2 == 0:
             args['insert'] = [(args['insert'][i], args['insert'][i + 1]) for i in range(0, len(args['insert']), 2)]
-        else:
+        elif args['insert'] and len(args['insert']) % 2 != 0:
             raise 'error: argument -i/--insert needs a tablename and path foreach csv file'
 
     return used_sub_parser, args
