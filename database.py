@@ -24,7 +24,7 @@ class Database:
 
     def exec_script(self, script_path: str):
         with self.conn() as conn, open(script_path) as f:
-            result = conn.executescript(f).fetchall()
+            result = conn.executescript(f.read()).fetchall()
             conn.commit()
         return result
 
