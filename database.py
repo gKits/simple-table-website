@@ -95,6 +95,12 @@ class Database:
             for row in pragma
         }
 
+    def get_all_tables(self):
+        with self.conn() as conn:
+            master = conn.execute('SELECT name FROM sqlite_master WHERE type="table"').fetchall()
+            conn.commit()
+        return [row[0] for row in master[:-1]]
+
     def type_casting(self, type: str, value: str):
         TYPE_CASTING = {
             'TEXT': str,
