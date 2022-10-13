@@ -10,6 +10,7 @@ class TableView(FlaskView):
         self.table = my_init_argument['displayed_table']
         self.table_pk = self.db.get_table_pk(self.table)
         self.title = f'{self.db.name}.{self.table}'
+        self.autobackup = False
 
     @route('/', methods=['GET', 'POST'])
     def index(self):
