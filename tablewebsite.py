@@ -18,7 +18,7 @@ def parse_args():
     parser_run.add_argument('-n', '--name', type=str, nargs='?', default='tableapp', help='Desired name of website.')
     parser_run.add_argument('-p', '--port', type=int, nargs='?', default=5000, help='Port to run website on.')
     parser_run.add_argument('-b', '--autobackup', action='store_true', help='Auto backup the DB tables in .csv files. Set directory with -B / --backupdir.')
-    parser_run.add_argument('-B', '--backupdir', type=str, nargs='?', default='./csv', help='.csv files of DB tables will be saved in dir. To autoback use -b / --autobackup.')
+    parser_run.add_argument('-B', '--backupdir', type=str, nargs='?', default='./csv/', help='.csv files of DB tables will be saved in dir. To autoback use -b / --autobackup.')
 
     # DB parser arguments
     parser_db.add_argument('-d', '--database', type=str, metavar='/path/to/database.db', default='./db/database.db', help='Path to .db file.')
@@ -44,9 +44,9 @@ def main():
     used_sub_parser, args = parse_args()
 
     if used_sub_parser == 'database':
-        provision_db(db_path=args['database'], sql_dir=args["sqldir"], sql_path=args['sql'], insert_tables=args['insert'], reprovision=args['reprovision'])
+        provision_db(db_path=args['database'], sql_path=args['sql'], insert_tables=args['insert'], reprovision=args['reprovision'])
     elif used_sub_parser == 'run':
-        run(db_path=args['database'], table=args['table'], name=args['name'], port=args['port'])
+        run(db_path=args['database'], table=args['table'], name=args['name'], port=args['port'], autobackup=args['autobackup'], backup_dir=args['backupdir'])
 
 
 if __name__ == '__main__':

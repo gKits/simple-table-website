@@ -5,12 +5,13 @@ from database import Database
 
 
 class TableView(FlaskView):
-    def __init__(self, my_init_argument):
-        self.db = Database(my_init_argument['db_path'])
-        self.table = my_init_argument['displayed_table']
+    def __init__(self, init_argument):
+        self.db = Database(init_argument['db_path'])
+        self.table = init_argument['displayed_table']
         self.table_pk = self.db.get_table_pk(self.table)
         self.title = f'{self.db.name}.{self.table}'
-        self.autobackup = False
+        self.autobackup = init_argument['autobackup']
+        self.backup_dir = init_argument['backup_dir']
 
     @route('/', methods=['GET', 'POST'])
     def index(self):
@@ -93,14 +94,16 @@ class TableView(FlaskView):
                 return redirect(f'/edit/{id}')
 
 
-def run(db_path: str, table: str, name: str = None, port: int = None):
+def run(db_path: str, table: str, name: str = None, port: int = None, autobackup: bool = False, backup_dir: str = None):
     app = Flask(name)
     TableView.register(
         app,
         route_base='/',
         init_argument={
             'db_path': db_path,
-            'displayed_table': table
+            'displayed_table': table,
+            'autobackup': autobackup,
+            'backup_dir': backup_dir
         }
     )
     app.run(use_reloader=True, port=port)
