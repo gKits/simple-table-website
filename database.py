@@ -7,7 +7,7 @@ from json import dumps
 class Database:
 
     def __init__(self, db_path: str):
-        self.db_path = db_path
+        self.db_path = path.abspath(db_path)
         self.name = path.split(db_path)[-1].split('.')[0]
         self.conn()
 
@@ -23,8 +23,10 @@ class Database:
         return result
 
     def exec_script(self, script_path: str):
-        with self.conn() as conn, open(script_path) as f:
-            result = conn.executescript(f.read()).fetchall()
+        print(path.abspath(script_path))
+        with self.conn() as conn:
+            with open(path.abspath(script_path)) as f:
+                result = conn.executescript(f.read()).fetchall()
             conn.commit()
         return result
 
@@ -56,7 +58,7 @@ class Database:
             conn.commit()
 
     def insert_from_csv_into_table(self, table: str, csv_path: str):
-        with open(csv_path, 'r') as f:
+        with open(path.abspath(csv_path), 'r') as f:
             csv_table = [line.strip().split(',') for line in f.readlines()]
         for entry in csv_table[1:]:
             kwargs = {
@@ -66,7 +68,7 @@ class Database:
             self.insert_row_into_table(table, **kwargs)
 
     def export_table_to_csv(self, table: str, csv_path: str):
-        with self.conn() as conn, open(csv_path, 'w', newline='') as f:
+        with self.conn() as conn, open(path.abspath(csv_path), 'w', newline='') as f:
             data = conn.execute(f'SELECT * FROM {table}')
             wr = writer(f, dialect='excel')
             wr.writerow([header[0] for header in data.description])
