@@ -2,6 +2,7 @@ from sqlite3 import DatabaseError
 from flask import Flask, request, redirect, render_template
 from flask_classful import FlaskView, route
 from database import Database
+from os.path import join, split
 
 
 class TableView(FlaskView):
@@ -15,6 +16,10 @@ class TableView(FlaskView):
 
     @route('/', methods=['GET', 'POST'])
     def index(self):
+        if self.autobackup:
+            for table in self.db.get_all_tables():
+                path = join(*split(self.backup_dir), f'{self.db.name}-{table}.csv')
+                self.db.export_table_to_csv(table, path)
         if request.method == 'GET':
             pragma_info = self.db.get_pragma_table_info(self.table, 'cid')
             data = self.db.exec(f'SELECT * FROM {self.table}')
