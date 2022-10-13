@@ -1,9 +1,9 @@
 from database import Database
-from os import remove, listdir
-from os.path import isfile, join
+from os import remove
+from os.path import isfile
 
 
-def provision_db(db_path: str = '', sql_dir: str = '', sql_path: str = '', insert_tables: list = [], reprovision: bool = False):
+def provision_db(db_path: str = '', sql_path: str = '', insert_tables: list = [], reprovision: bool = False):
     if isfile(db_path) and reprovision:
         remove(db_path)
 
@@ -11,12 +11,6 @@ def provision_db(db_path: str = '', sql_dir: str = '', sql_path: str = '', inser
 
     if sql_path:
         db.exec_script(sql_path)
-        # for sql in sql_paths:
-        #     db.exec_script(sql)
-    else:
-        for filename in listdir(sql_dir):
-            sql = join(sql_dir, filename)
-            db.exec_script(sql)
 
     if insert_tables:
         for tablename, csv in insert_tables:
