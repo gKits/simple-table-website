@@ -6,6 +6,3 @@ CREATE TABLE Person (
     Firstname TEXT NOT NULL,
     Age INTEGER
 );
-
-INSERT INTO Person (Name, Firstname, Age)
-VALUES("Joe", "Schmoe", 35);
