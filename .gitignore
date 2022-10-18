@@ -130,7 +130,9 @@ dmypy.json
 
 #VS Code
 .vscode
+*.rest
 
 #SQL
 database.db
 csv/
+sql/savvy.sql

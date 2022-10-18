@@ -1,34 +1,17 @@
-import argparse
+from database import Database
+from os import remove
+from os.path import isfile
 
 
-from os import path
-import db_functions as db
+def provision_db(db_path: str = '', sql_path: str = '', insert_tables: list = [], reprovision: bool = False):
+    if isfile(db_path) and reprovision:
+        remove(db_path)
 
+    db = Database(db_path)
 
-def provision_db(database: str, schema: str, table: str, csv_path: str = ''):
-    if path.isfile(database):
-        return
-    db.exec_script(database, f'./sql_schematics/{schema}')
-    if csv_path is not None and path.isfile(csv_path):
-        db.insert_csv_into_table(database, table, csv_path)
+    if sql_path:
+        db.exec_script(sql_path)
 
-
-def main():
-    parser = argparse.ArgumentParser(
-        'Provision SQLite database',
-        description='Options for the DB proviosioning for your table website'
-    )
-
-    parser.add_argument(
-        '-d', '--database'
-    )
-    parser.add_argument(
-        '-c', '-csv'
-    )
-    parser.add_argument(
-        '-s', '-sql'
-    )
-
-
-if __name__ == '__main__':
-    main()
+    if insert_tables:
+        for tablename, csv in insert_tables:
+            db.insert_from_csv_into_table(tablename, csv)
